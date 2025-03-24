@@ -32,7 +32,7 @@ export class UsersResolver {
   @UseGuards(AuthGuard)
   @Mutation(() => Users, { name: "updateUserInfo" })
   async updateUserInfo(
-    @Args() updateUserInfoArgs: UpdateUserInfoArgs,
+    @Args("updateUserInfoArgs") updateUserInfoArgs: UpdateUserInfoArgs,
     @UserProfile() actionUser: Partial<Users>
   ) {
     // Add before the update

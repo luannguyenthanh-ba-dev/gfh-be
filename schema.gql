@@ -113,6 +113,7 @@ type Mutation {
   createProduct(createProductArgs: CreateProductArgs!): Products!
   registerNewUser(registerNewUserArgs: RegisterNewUserArgs!): Users!
   login(loginArgs: LoginArgs!): LoginResult!
+  updateUserInfo(updateUserInfoArgs: UpdateUserInfoArgs!): Users!
 }
 
 input AddCustomerArgs {
@@ -158,4 +159,16 @@ input RegisterNewUserArgs {
 input LoginArgs {
   email: String!
   password: String!
+}
+
+input UpdateUserInfoArgs {
+  """The ID of user"""
+  id: ID!
+  first_name: String
+  last_name: String
+  address: String
+  phone: String
+  birthday: String
+  picture: String
+  role: USER_ROLES
 }
