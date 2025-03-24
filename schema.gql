@@ -90,6 +90,13 @@ type LoginResult {
   token_type: String!
 }
 
+type PaginatedUsers {
+  items: [Users]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
 """Date custom scalar type"""
 scalar Date
 
@@ -99,6 +106,7 @@ type Query {
   paginateProducts(id: ID, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, name: String, price: Float, currency: ProductsCurrency, brand: String, from: String, to: String): PaginatedProducts!
   me: Users!
   getUserById(id: ID!): Users!
+  paginateUsers(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, name: String, email: String, phone: String, role: USER_ROLES, auth0_user_id: String): PaginatedUsers!
 }
 
 enum Oder {

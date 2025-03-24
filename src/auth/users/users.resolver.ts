@@ -11,7 +11,8 @@ import { AuthGuard } from "../guards/auth.guard";
 import { RolesGuard } from "../guards/roles.guard";
 import { Roles } from "../auth.decorator";
 import { USER_ROLES, UserProfile } from "src/common/utils/constants.util";
-import { UpdateUserInfoArgs } from "./dtos";
+import { UpdateUserInfoArgs, PaginateUsersArgs } from "./dtos";
+import { PaginatedUsers } from "./models/paginated-users.model";
 
 @Resolver((of) => Users)
 export class UsersResolver {
@@ -69,5 +70,19 @@ export class UsersResolver {
 
     // Update user
     return this.usersService.updateOne(updateUserInfoArgs.id, updateUserInfoArgs);
+  }
+
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(USER_ROLES.ADMIN, USER_ROLES.SUPER_ADMIN)
+  @Query(() => PaginatedUsers, { name: "paginateUsers" })
+  async paginateUsers(@Args() filters: PaginateUsersArgs) {
+    const result = await this.usersService.paginate(
+      filters,
+      filters.page,
+      filters.limit,
+      filters.order_by,
+      filters.order
+    );
+    return result;
   }
 }
