@@ -1,0 +1,161 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+directive @upper on FIELD_DEFINITION
+
+"""customers"""
+type Customers {
+  """ID"""
+  id: ID!
+  first_name: String!
+  last_name: String!
+  email: String
+  address: String
+  phone: String
+  birthday: String
+  gender: CustomerGenders
+  created_at: Date!
+  updated_at: Date!
+}
+
+enum CustomerGenders {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+"""paginated customers result"""
+type PaginatedCustomers {
+  data: [Customers]!
+  total: Int!
+}
+
+type Products {
+  id: ID!
+  name: String!
+  price: Float!
+  currency: ProductsCurrency!
+  brand: String
+  stock: Float
+  created_at: Date!
+  updated_at: Date!
+}
+
+enum ProductsCurrency {
+  USD
+  EUR
+  VND
+  CNY
+  JPY
+  KRW
+}
+
+type PaginatedProducts {
+  items: [Products]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
+"""users"""
+type Users {
+  """ID"""
+  id: ID!
+  first_name: String!
+  last_name: String!
+  email: String!
+  address: String
+  phone: String
+  birthday: String
+  role: USER_ROLES!
+  picture: String
+  created_at: Date!
+  updated_at: Date!
+}
+
+enum USER_ROLES {
+  SUPER_ADMIN
+  ADMIN
+  NORMAL_USER
+}
+
+type LoginResult {
+  """JWT TOKEN from Auth0"""
+  access_token: String!
+
+  """REFRESH TOKEN from Auth0"""
+  refresh_token: String!
+  expires_in: Int!
+  token_type: String!
+}
+
+"""Date custom scalar type"""
+scalar Date
+
+type Query {
+  viewCustomerDetail(id: String!): Customers!
+  paginateCustomers(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, email: String, name: String, phone: String, search: String): PaginatedCustomers!
+  paginateProducts(id: ID, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, name: String, price: Float, currency: ProductsCurrency, brand: String, from: String, to: String): PaginatedProducts!
+  me: Users!
+  getUserById(id: ID!): Users!
+}
+
+enum Oder {
+  ASC
+  DESC
+}
+
+type Mutation {
+  addCustomer(addCustomerArgs: AddCustomerArgs!): Customers!
+  updateCustomer(updateCustomerArgs: UpdateCustomerArgs!): Customers!
+  deleteCustomer(id: String!): Boolean!
+  createProduct(createProductArgs: CreateProductArgs!): Products!
+  registerNewUser(registerNewUserArgs: RegisterNewUserArgs!): Users!
+  login(loginArgs: LoginArgs!): LoginResult!
+}
+
+input AddCustomerArgs {
+  first_name: String!
+  last_name: String!
+  email: String!
+  address: String
+  phone: String
+  birthday: String
+  gender: CustomerGenders
+}
+
+input UpdateCustomerArgs {
+  """The ID that we will use to find record to MODIFY!"""
+  id: ID!
+  first_name: String
+  last_name: String
+  address: String
+  phone: String
+  birthday: String
+  gender: CustomerGenders
+}
+
+input CreateProductArgs {
+  name: String!
+  price: Float!
+  currency: ProductsCurrency!
+  brand: String!
+  stock: Int!
+}
+
+input RegisterNewUserArgs {
+  first_name: String!
+  last_name: String!
+  email: String!
+  password: String!
+  address: String
+  phone: String
+  birthday: String
+  picture: String
+}
+
+input LoginArgs {
+  email: String!
+  password: String!
+}
