@@ -50,6 +50,11 @@ export class UsersResolver {
     const isAdmin = actionUser.role === USER_ROLES.ADMIN;
     const isSuperAdmin = actionUser.role === USER_ROLES.SUPER_ADMIN;
 
+    // If target user is Super Admin, only they can modify their own info
+    if (targetUser.role === USER_ROLES.SUPER_ADMIN && !isOwner) {
+      throw new ForbiddenException("Super Admin can only be modified by themselves!");
+    }
+
     // If not owner or admin/superadmin, deny access
     if (!isOwner && !isAdmin && !isSuperAdmin) {
       throw new ForbiddenException("You don't have permission to update this user!");
@@ -65,6 +70,11 @@ export class UsersResolver {
       // Admin can only set role to NORMAL_USER or ADMIN
       if (isAdmin && !isSuperAdmin && updateUserInfoArgs.role === USER_ROLES.SUPER_ADMIN) {
         throw new ForbiddenException("Admin cannot set Super Admin role!");
+      }
+
+      // Prevent changing Super Admin role
+      if (targetUser.role === USER_ROLES.SUPER_ADMIN) {
+        throw new ForbiddenException("Super Admin role cannot be modified!");
       }
     }
 
