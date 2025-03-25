@@ -10,6 +10,7 @@ import { DateScalar } from "./common/scalars/date.scalar";
 import { ProductsModule } from "./products/products.module";
 import { AppController } from "./app.controller";
 import { AuthModule } from "./auth/auth.module";
+import { BmiModule } from "./health-index/bmi/bmi.module";
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { AuthModule } from "./auth/auth.module";
     CustomersModule,
     ProductsModule,
     AuthModule,
+    BmiModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       introspection: true,
       playground: false,

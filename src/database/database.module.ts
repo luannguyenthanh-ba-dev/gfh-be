@@ -1,6 +1,8 @@
 import { Module } from "@nestjs/common";
 import { TypeOrmModule } from "@nestjs/typeorm";
+import { UsersEntity } from "src/auth/users/entities/users.entity";
 import { CustomersEntity } from "src/customers/entities/customers.entity";
+import { BmiEntity } from "src/health-index/bmi/entities/bmi.entity";
 import { ProductsEntity } from "src/products/entities/products.entity";
 
 @Module({
@@ -17,7 +19,7 @@ import { ProductsEntity } from "src/products/entities/products.entity";
           database: process.env.POSTGRESQL_DATABASE || "local_db",
           autoLoadEntities: true, // Automatically load entities
           synchronize: process.env.environment === "development", // Auto-migrate schema in development (disable in production)
-          entities: [CustomersEntity, ProductsEntity],
+          entities: [CustomersEntity, ProductsEntity, UsersEntity, BmiEntity],
           // logging: true,
         };
       },

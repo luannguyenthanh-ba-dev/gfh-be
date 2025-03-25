@@ -97,6 +97,29 @@ type PaginatedUsers {
   limit: Int!
 }
 
+type Bmi {
+  """BMI ID"""
+  id: ID!
+  height: Float!
+  weight: Float!
+  bmi_value: Float!
+  bmi_category: BMI_CATEGORY!
+  owner_id: ID!
+  owner: Users
+  created_at: Date!
+  updated_at: Date!
+}
+
+"""BMI Category"""
+enum BMI_CATEGORY {
+  UNDERWEIGHT
+  NORMAL
+  OVERWEIGHT
+  OBESE
+  OBESE_II
+  OBESE_III
+}
+
 """Date custom scalar type"""
 scalar Date
 
@@ -107,6 +130,7 @@ type Query {
   me: Users!
   getUserById(id: ID!): Users!
   paginateUsers(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, name: String, email: String, phone: String, role: USER_ROLES, auth0_user_id: String): PaginatedUsers!
+  getBmiById(id: ID!): Bmi!
 }
 
 enum Oder {
@@ -122,6 +146,13 @@ type Mutation {
   registerNewUser(registerNewUserArgs: RegisterNewUserArgs!): Users!
   login(loginArgs: LoginArgs!): LoginResult!
   updateUserInfo(updateUserInfoArgs: UpdateUserInfoArgs!): Users!
+  createBmiRecord(
+    """Height in meters. Example: 1.75"""
+    height: Float!
+
+    """Weight in kilograms. Example: 70.5"""
+    weight: Float!
+  ): Bmi!
 }
 
 input AddCustomerArgs {
