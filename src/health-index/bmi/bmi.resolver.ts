@@ -1,11 +1,16 @@
-import { Args, ID, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { UseGuards, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { BmiService } from './bmi.service';
-import { Bmi } from './models/bmi.model';
-import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { USER_ROLES, UserProfile } from 'src/common/utils/constants.util';
-import { Users } from 'src/auth/users/models/users.model';
-import { CreateBmiArgs } from './dtos';
+import { Args, ID, Mutation, Query, Resolver } from "@nestjs/graphql";
+import {
+  UseGuards,
+  NotFoundException,
+  ForbiddenException,
+} from "@nestjs/common";
+import { BmiService } from "./bmi.service";
+import { Bmi } from "./models/bmi.model";
+import { AuthGuard } from "src/auth/guards/auth.guard";
+import { USER_ROLES, UserProfile } from "src/common/utils/constants.util";
+import { Users } from "src/auth/users/models/users.model";
+import { CreateBmiArgs, PaginateBmiArgs } from "./dtos";
+import { PaginatedBmi } from "./models/paginated-bmi.model";
 
 @Resolver(() => Bmi)
 export class BmiResolver {
@@ -19,20 +24,20 @@ export class BmiResolver {
   ) {
     return this.bmiService.create({
       ...createBmiArgs,
-      owner_id: actionUser.id
+      owner_id: actionUser.id,
     });
   }
 
   @UseGuards(AuthGuard)
-  @Query(() => Bmi, { name: 'getBmiById' })
+  @Query(() => Bmi, { name: "getBmiById" })
   async getBmiById(
-    @Args('id', { type: () => ID }) id: string,
+    @Args("id", { type: () => ID }) id: string,
     @UserProfile() actionUser: Partial<Users>
   ) {
     const bmiRecord = await this.bmiService.findOne({ id });
-    
+
     if (!bmiRecord) {
-      throw new NotFoundException('BMI record not found');
+      throw new NotFoundException("BMI record not found");
     }
 
     // Check if user has permission to view this record
@@ -48,4 +53,19 @@ export class BmiResolver {
 
     return bmiRecord;
   }
-} 
+
+  @UseGuards(AuthGuard)
+  @Query(() => PaginatedBmi, { name: "getMyBmiRecords" })
+  async getMyBmiRecords(
+    @Args() paginateArgs: PaginateBmiArgs,
+    @UserProfile() actionUser: Partial<Users>
+  ) {
+    return this.bmiService.paginate(
+      { owner_id: actionUser.id, ...paginateArgs },
+      paginateArgs.page,
+      paginateArgs.limit,
+      paginateArgs.order_by,
+      paginateArgs.order
+    );
+  }
+}

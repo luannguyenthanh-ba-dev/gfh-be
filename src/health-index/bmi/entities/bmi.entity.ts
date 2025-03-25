@@ -25,8 +25,6 @@ export class BmiEntity {
   @Column({
     type: "float",
     nullable: false,
-    generatedType: "STORED",
-    asExpression: "weight / (height * height)",
   })
   bmi_value: number;
 
@@ -62,6 +60,7 @@ export class BmiEntity {
   @BeforeInsert()
   @BeforeUpdate()
   calculateBmiCategory() {
+    this.bmi_value = this.weight / (this.height * this.height);
     if (this.bmi_value < 18.5) this.bmi_category = BMI_CATEGORY.UNDERWEIGHT;
     else if (this.bmi_value < 25) this.bmi_category = BMI_CATEGORY.NORMAL;
     else if (this.bmi_value < 30) this.bmi_category = BMI_CATEGORY.OVERWEIGHT;

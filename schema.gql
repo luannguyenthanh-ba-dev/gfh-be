@@ -120,6 +120,13 @@ enum BMI_CATEGORY {
   OBESE_III
 }
 
+type PaginatedBmi {
+  items: [Bmi]!
+  total: Int!
+  page: Int!
+  limit: Int!
+}
+
 """Date custom scalar type"""
 scalar Date
 
@@ -131,6 +138,7 @@ type Query {
   getUserById(id: ID!): Users!
   paginateUsers(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, name: String, email: String, phone: String, role: USER_ROLES, auth0_user_id: String): PaginatedUsers!
   getBmiById(id: ID!): Bmi!
+  getMyBmiRecords(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, from_height: Float, to_height: Float, from_weight: Float, to_weight: Float, from_bmi_value: Float, to_bmi_value: Float, bmi_category: BMI_CATEGORY, from_time: Date, to_time: Date): PaginatedBmi!
 }
 
 enum Oder {

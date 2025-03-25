@@ -1,10 +1,15 @@
-import { Injectable, Logger } from "@nestjs/common";
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { BmiEntity } from "./entities/bmi.entity";
 import { BMI_CATEGORY } from "./bmi.const";
 import { IBmiFilters } from "./bmi.interface";
-
+import { Oder } from "src/common/utils/constants.util";
+import { paginate } from "src/common/utils/constants.util";
 @Injectable()
 export class BmiService {
   private readonly logger = new Logger(BmiService.name);
@@ -66,9 +71,50 @@ export class BmiService {
       query.andWhere("bmi_records.owner_id = :owner_id", {
         owner_id: filters.owner_id,
       });
-    if (filters.bmi_value)
-      query.andWhere("bmi_records.bmi_value = :bmi_value", {
-        bmi_value: filters.bmi_value,
+    if (filters.bmi_category)
+      query.andWhere("bmi_records.bmi_category = :bmi_category", {
+        bmi_category: filters.bmi_category,
+      });
+    const result = await query.getOne();
+    return result;
+  }
+
+  async paginate(
+    filters: IBmiFilters,
+    page: string | number = 1,
+    limit: string | number = 10,
+    order_by: string = "created_at",
+    order: Oder = Oder.DESC
+  ) {
+    const query = this.query();
+    if (filters.id) query.andWhere("bmi_records.id = :id", { id: filters.id });
+    if (filters.owner_id)
+      query.andWhere("bmi_records.owner_id = :owner_id", {
+        owner_id: filters.owner_id,
+      });
+    if (filters.from_height)
+      query.andWhere("bmi_records.height >= :from_height", {
+        from_height: filters.from_height,
+      });
+    if (filters.to_height)
+      query.andWhere("bmi_records.height <= :to_height", {
+        to_height: filters.to_height,
+      });
+    if (filters.from_weight)
+      query.andWhere("bmi_records.weight >= :from_weight", {
+        from_weight: filters.from_weight,
+      });
+    if (filters.to_weight)
+      query.andWhere("bmi_records.weight <= :to_weight", {
+        to_weight: filters.to_weight,
+      });
+    if (filters.from_bmi_value)
+      query.andWhere("bmi_records.bmi_value >= :from_bmi_value", {
+        from_bmi_value: filters.from_bmi_value,
+      });
+    if (filters.to_bmi_value)
+      query.andWhere("bmi_records.bmi_value <= :to_bmi_value", {
+        to_bmi_value: filters.to_bmi_value,
       });
     if (filters.bmi_category)
       query.andWhere("bmi_records.bmi_category = :bmi_category", {
@@ -82,7 +128,24 @@ export class BmiService {
       query.andWhere("bmi_records.created_at <= :to_time", {
         to_time: filters.to_time,
       });
-    const result = await query.getOne();
-    return result;
+    try {
+      const { p, l } = paginate(page, limit);
+
+      const [total, data] = await Promise.all([
+        query.getCount(),
+        query
+          .orderBy(`bmi_records.${order_by}`, order)
+          .skip((p - 1) * l)
+          .take(l)
+          .getMany(),
+      ]);
+
+      return { items: data || [], total, page: p, limit: l };
+    } catch (error) {
+      this.logger.log(
+        `Paginate bmi records met error: ${error.message || "Unknown error"}`
+      );
+      throw new InternalServerErrorException(error.message || "Unknown error");
+    }
   }
 }
