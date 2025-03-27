@@ -15,9 +15,12 @@ import { PaginatedBmi } from "./models/paginated-bmi.model";
 import { BmiChartType } from "./bmi.const";
 import { BmiChartData } from "./models/bmi-chart.model";
 import * as momentTz from "moment-timezone";
+import { Logger } from "@nestjs/common";
 
 @Resolver(() => Bmi)
 export class BmiResolver {
+  private readonly logger = new Logger(BmiResolver.name);
+
   constructor(private readonly bmiService: BmiService) {}
 
   @UseGuards(AuthGuard)
@@ -26,6 +29,34 @@ export class BmiResolver {
     @Args() createBmiArgs: CreateBmiArgs,
     @UserProfile() actionUser: Partial<Users>
   ) {
+    // Get the current date
+    const from_time = momentTz()
+      .tz(createBmiArgs.timezone)
+      .startOf("day")
+      .toDate();
+
+    const to_time = momentTz().tz(createBmiArgs.timezone).endOf("day").toDate();
+
+    // Check if user already has a BMI record for today
+    const existingRecord = await this.bmiService.findOne({
+      owner_id: actionUser.id,
+      from_time: from_time,
+      to_time: to_time,
+    });
+
+    // If record exists, update it
+    if (existingRecord) {
+      this.logger.log(
+        `Updating existing BMI record for user ${actionUser.email}`
+      );
+      return this.bmiService.updateOne(existingRecord.id, {
+        height: createBmiArgs.height,
+        weight: createBmiArgs.weight,
+      });
+    }
+
+    // If no record exists, create a new one
+    this.logger.log(`Creating new BMI record for user ${actionUser.email}`);
     return this.bmiService.create({
       ...createBmiArgs,
       owner_id: actionUser.id,

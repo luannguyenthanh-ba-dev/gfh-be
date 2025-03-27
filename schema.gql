@@ -184,6 +184,9 @@ type Mutation {
 
     """Weight in kilograms. Example: 70.5"""
     weight: Float!
+
+    """Timezone. Example: Asia/Ho_Chi_Minh"""
+    timezone: String! = "Asia/Ho_Chi_Minh"
   ): Bmi!
 }
 

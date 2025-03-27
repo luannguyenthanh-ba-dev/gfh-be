@@ -125,6 +125,7 @@ $ npm run lint
 ```
 
 ## Main Dependencies
+- Node 20
 - NestJS v11.0.11
 - Apollo Server v4.11.3
 - GraphQL v16.10.0
