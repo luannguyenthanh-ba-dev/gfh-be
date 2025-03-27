@@ -10,6 +10,10 @@ import { BMI_CATEGORY } from "./bmi.const";
 import { IBmiFilters } from "./bmi.interface";
 import { Oder } from "src/common/utils/constants.util";
 import { paginate } from "src/common/utils/constants.util";
+import { Between } from "typeorm";
+import { BmiChartData } from "./models/bmi-chart.model";
+import * as momentTz from 'moment-timezone';
+
 @Injectable()
 export class BmiService {
   private readonly logger = new Logger(BmiService.name);
@@ -146,6 +150,70 @@ export class BmiService {
         `Paginate bmi records met error: ${error.message || "Unknown error"}`
       );
       throw new InternalServerErrorException(error.message || "Unknown error");
+    }
+  }
+
+  async getChartData(
+    owner_id: string,
+    start_date: Date,
+    end_date: Date,
+    timezone: string = 'Asia/Ho_Chi_Minh'
+  ): Promise<BmiChartData[]> {
+    try {
+      // Get all BMI records in the date range
+      const records = await this.bmiRepository.find({
+        where: {
+          owner_id,
+          created_at: Between(start_date, end_date)
+        },
+        order: {
+          created_at: 'ASC'
+        }
+      });
+
+      // Generate a complete date range from start to end
+      const chartData: BmiChartData[] = [];
+      const dateMap: Map<string, BmiEntity> = new Map();
+      
+      // Group by date string and keep only the latest record for each day
+      records.forEach(record => {
+        const dateStr = momentTz(record.created_at).tz(timezone).format('YYYY-MM-DD');
+        // If we already have a record for this date, check if this one is newer
+        if (dateMap.has(dateStr)) {
+          const existingRecord = dateMap.get(dateStr);
+          if (record.created_at > existingRecord.created_at) {
+            dateMap.set(dateStr, record);
+          }
+        } else {
+          dateMap.set(dateStr, record);
+        }
+      });
+      
+      // Create a continuous date range with all days using moment
+      let current_moment = momentTz(start_date).tz(timezone);
+      const end_moment = momentTz(end_date).tz(timezone);
+      
+      while (current_moment.isSameOrBefore(end_moment, 'day')) {
+        const dateStr = current_moment.format('YYYY-MM-DD');
+        const record = dateMap.get(dateStr);
+        
+        chartData.push({
+          date: dateStr, // Format as "YYYY-MM-DD"
+          bmi_value: record ? record.bmi_value : 0,
+          bmi_category: record ? record.bmi_category : null
+        });
+        
+        // Move to next day
+        current_moment.add(1, 'day');
+      }
+
+      return chartData;
+    } catch (error) {
+      this.logger.error(
+        `Error generating BMI chart data: ${error.message || 'Unknown error'}`,
+        error.stack
+      );
+      throw error;
     }
   }
 }

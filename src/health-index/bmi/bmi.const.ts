@@ -13,3 +13,14 @@ registerEnumType(BMI_CATEGORY, {
   name: 'BMI_CATEGORY',
   description: 'BMI Category',
 });
+
+export enum BmiChartType {
+  SEVEN_DAYS = 'SEVEN_DAYS',
+  THIRTY_DAYS = 'THIRTY_DAYS',
+  NINETY_DAYS = 'NINETY_DAYS'
+}
+
+registerEnumType(BmiChartType, {
+  name: 'BmiChartType',
+  description: 'Type of BMI chart period',
+});

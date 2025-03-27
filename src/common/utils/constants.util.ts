@@ -112,3 +112,19 @@ export const UserProfile = createParamDecorator(
     return request.user;
   }
 );
+
+// Helper function to create date in user's timezone
+export const createDateInTimezone = (
+  dateString?: string,
+  timezone: string = "Asia/Ho_Chi_Minh"
+) => {
+  if (!dateString) {
+    // Current date in user's timezone
+    return new Date(new Date().toLocaleString("en-US", { timeZone: timezone }));
+  }
+
+  // Parse specified date in user's timezone
+  return new Date(
+    new Date(dateString).toLocaleString("en-US", { timeZone: timezone })
+  );
+};
