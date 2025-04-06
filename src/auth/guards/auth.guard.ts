@@ -37,7 +37,7 @@ export class AuthGuard implements CanActivate {
     const request = ctx.getContext().req; // Extract request from GraphQL context
     const token = request.headers["authorization"];
 
-    const apiKey = request.headers["api-key"];
+    const apiKey = request.headers["api-key"] as string;
     // Note: When we use internal API Key we must accept cross call all feature and pass the role guard too!
     if (apiKey) {
       if (apiKey !== this.internal_service_API_key) {

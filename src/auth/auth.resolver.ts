@@ -14,13 +14,16 @@ import { Throttle } from "@nestjs/throttler";
 import { AuthGuard } from "./guards/auth.guard";
 import { UsersEntity } from "./users/entities/users.entity";
 import { LoginResult } from "./models/auth.model";
+import { NotificationSvcService } from "../external-services/notification-service/notification-svc.service";
+import { APP_USERS_NOTIFICATION_SETTINGS_EVENTS } from "../external-services/notification-service/notification-svc.const";
 
 @Resolver()
 export class AuthResolver {
   private logger = new Logger(AuthResolver.name);
   constructor(
     private readonly authService: AuthService,
-    private readonly usersService: UsersService
+    private readonly usersService: UsersService,
+    private readonly notificationSvcService: NotificationSvcService
   ) {}
 
   // Consider adding rate limiting to prevent abuse
@@ -52,15 +55,31 @@ export class AuthResolver {
       picture: data.picture,
     });
 
+    if (user) {
+      this.notificationSvcService.createAppUsersNotificationSettings({
+        user_id: user.id,
+        user_email: user.email,
+        event_types: [
+          APP_USERS_NOTIFICATION_SETTINGS_EVENTS.BMI_NOTIFICATION,
+          APP_USERS_NOTIFICATION_SETTINGS_EVENTS.BMR_NOTIFICATION,
+          APP_USERS_NOTIFICATION_SETTINGS_EVENTS.BODY_STATS_NOTIFICATION,
+          APP_USERS_NOTIFICATION_SETTINGS_EVENTS.TDEE_NOTIFICATION,
+        ],
+        in_app_notification: true,
+        email_notification: true,
+        telegram_notification: false,
+      });
+    }
+
     this.logger.log(`User registration attempt for email: ${data.email}`);
     return user;
   }
 
- @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @Query(() => Users, { name: "me" })
   async me(@UserProfile() user: Partial<UsersEntity>) {
     return user;
-  } 
+  }
 
   @Mutation(() => LoginResult, { name: "login" })
   async login(@Args("loginArgs") data: LoginArgs) {
