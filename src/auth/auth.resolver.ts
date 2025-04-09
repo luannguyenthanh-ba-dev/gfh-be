@@ -56,7 +56,7 @@ export class AuthResolver {
     });
 
     if (user) {
-      this.notificationSvcService.createAppUsersNotificationSettings({
+      this.notificationSvcService.createAppUsersSettings({
         user_id: user.id,
         user_email: user.email,
         event_types: [

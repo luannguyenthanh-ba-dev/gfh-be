@@ -97,6 +97,48 @@ type PaginatedUsers {
   limit: Int!
 }
 
+type NotificationAppUsersSettings {
+  """AppUsers Setting ID"""
+  _id: ID!
+
+  """User ID"""
+  user_id: String!
+
+  """User Email"""
+  user_email: String!
+
+  """User Phone"""
+  user_phone: String
+
+  """User Telegram ID"""
+  user_telegram_id: String
+
+  """AppUsers Event Types"""
+  event_types: [AppUsersNotificationSettingsEvents!]!
+
+  """In App Notification"""
+  in_app_notification: Boolean!
+
+  """Email Notification"""
+  email_notification: Boolean!
+
+  """Telegram Notification"""
+  telegram_notification: Boolean!
+
+  """Created At - Unix Timestamp"""
+  created_at: Float!
+
+  """Updated At - Unix Timestamp"""
+  updated_at: Float!
+}
+
+enum AppUsersNotificationSettingsEvents {
+  BMI_NOTIFICATION
+  BMR_NOTIFICATION
+  BODY_STATS_NOTIFICATION
+  TDEE_NOTIFICATION
+}
+
 type Bmi {
   """BMI ID"""
   id: ID!
@@ -144,6 +186,7 @@ type Query {
   me: Users!
   getUserById(id: ID!): Users!
   paginateUsers(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, name: String, email: String, phone: String, role: USER_ROLES, auth0_user_id: String): PaginatedUsers!
+  getNotificationAppUsersSettings: NotificationAppUsersSettings!
   getBmiById(id: ID!): Bmi!
   getMyBmiRecords(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, from_height: Float, to_height: Float, from_weight: Float, to_weight: Float, from_bmi_value: Float, to_bmi_value: Float, bmi_category: BMI_CATEGORY, from_time: Date, to_time: Date): PaginatedBmi!
   getMyBmiChart(
@@ -178,6 +221,7 @@ type Mutation {
   registerNewUser(registerNewUserArgs: RegisterNewUserArgs!): Users!
   login(loginArgs: LoginArgs!): LoginResult!
   updateUserInfo(updateUserInfoArgs: UpdateUserInfoArgs!): Users!
+  updateNotificationAppUsersSettings(updateNotificationAppUsersSettingsArgs: UpdateNotificationAppUsersSettingsArgs!): NotificationAppUsersSettings!
   createBmiRecord(
     """Height in meters. Example: 1.75"""
     height: Float!
@@ -245,4 +289,30 @@ input UpdateUserInfoArgs {
   birthday: String
   picture: String
   role: USER_ROLES
+}
+
+input UpdateNotificationAppUsersSettingsArgs {
+  """User ID"""
+  user_id: String!
+
+  """User Email"""
+  user_email: String
+
+  """User Telegram ID"""
+  user_telegram_id: String
+
+  """User Phone"""
+  user_phone: String
+
+  """AppUsers Event Types"""
+  event_types: [AppUsersNotificationSettingsEvents!]
+
+  """In App Notification"""
+  in_app_notification: Boolean
+
+  """Email Notification"""
+  email_notification: Boolean
+
+  """Telegram Notification"""
+  telegram_notification: Boolean
 }

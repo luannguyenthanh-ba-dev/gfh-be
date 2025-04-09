@@ -11,6 +11,7 @@ import { ProductsModule } from "./products/products.module";
 import { AppController } from "./app.controller";
 import { AuthModule } from "./auth/auth.module";
 import { BmiModule } from "./health-index/bmi/bmi.module";
+import { NotificationSvcModule } from "./external-services/notification-service/notification-svc.module";
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { BmiModule } from "./health-index/bmi/bmi.module";
     ProductsModule,
     AuthModule,
     BmiModule,
+    NotificationSvcModule,
     GraphQLModule.forRoot<ApolloDriverConfig>({
       introspection: true,
       playground: false,

@@ -1,5 +1,5 @@
 import { HttpModule } from "@nestjs/axios";
-import { Module } from "@nestjs/common";
+import { forwardRef, Module } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { AuthResolver } from "./auth.resolver";
 import { UsersResolver } from "./users/users.resolver";
@@ -11,7 +11,7 @@ import { NotificationSvcModule } from "../external-services/notification-service
   imports: [
     HttpModule,
     TypeOrmModule.forFeature([UsersEntity]),
-    NotificationSvcModule,
+    forwardRef(() => NotificationSvcModule),
   ],
   providers: [AuthService, AuthResolver, UsersResolver, UsersService],
   exports: [UsersService, HttpModule],
