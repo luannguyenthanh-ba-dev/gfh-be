@@ -5,11 +5,17 @@ import {
 } from "@nestjs/common";
 import axios from "axios";
 import { APP_USERS_NOTIFICATION_SETTINGS_EVENTS } from "./notification-svc.const";
+import { RabbitMQService } from "../../queue/rabbit-mq.service";
+import { GeneralNotificationFormat } from "./notification-svc.interface";
 
 @Injectable()
 export class NotificationSvcService {
   private readonly logger = new Logger(NotificationSvcService.name);
-  constructor() {}
+  private readonly notificationSvcUrl = process.env.NOTIFICATION_SERVICE_URL;
+  private readonly notificationSvcApiKey = process.env.NOTIFICATION_SERVICE_API_KEY;
+  private readonly queueName = process.env.NOTIFICATION_QUEUE_NAME;
+  
+  constructor(private readonly rabbitMQService: RabbitMQService) {}
 
   async createAppUsersSettings(data: {
     user_id: string;
@@ -24,14 +30,14 @@ export class NotificationSvcService {
     try {
       this.logger.log(`Creating appusers settings for user ${data.user_id}`);
       const response = await axios.post(
-        `${process.env.NOTIFICATION_SERVICE_URL}/notification-settings/appusers-settings`,
+        `${this.notificationSvcUrl}/notification-settings/appusers-settings`,
         {
           ...data,
         },
         {
           headers: {
             "Content-Type": "application/json",
-            "api-key": process.env.NOTIFICATION_SERVICE_API_KEY,
+            "api-key": this.notificationSvcApiKey,
           },
         }
       );
@@ -48,17 +54,19 @@ export class NotificationSvcService {
     try {
       this.logger.log(`Getting appusers settings for user ${user_id}`);
       const response = await axios.get(
-        `${process.env.NOTIFICATION_SERVICE_URL}/notification-settings/appusers-settings/${user_id}`,
+        `${this.notificationSvcUrl}/notification-settings/appusers-settings/${user_id}`,
         {
           headers: {
             "Content-Type": "application/json",
-            "api-key": process.env.NOTIFICATION_SERVICE_API_KEY,
+            "api-key": this.notificationSvcApiKey,
           },
         }
       );
       return response.data;
     } catch (error) {
-      this.logger.error(`ERROR from getAppUsersSettings: ${error.response.data}`);
+      this.logger.error(
+        `ERROR from getAppUsersSettings: ${error.response.data}`
+      );
       throw new InternalServerErrorException(error.response.data);
     }
   }
@@ -76,14 +84,14 @@ export class NotificationSvcService {
     try {
       this.logger.log(`Updating appusers settings for user ${data.user_id}`);
       const response = await axios.put(
-        `${process.env.NOTIFICATION_SERVICE_URL}/notification-settings/appusers-settings/${data.user_id}`,
+        `${this.notificationSvcUrl}/notification-settings/appusers-settings/${data.user_id}`,
         {
           ...data,
         },
         {
           headers: {
             "Content-Type": "application/json",
-            "api-key": process.env.NOTIFICATION_SERVICE_API_KEY,
+            "api-key": this.notificationSvcApiKey,
           },
         }
       );
@@ -93,6 +101,31 @@ export class NotificationSvcService {
         `ERROR from updateAppUsersSettings: ${error.response.data}`
       );
       throw new InternalServerErrorException(error.response.data);
+    }
+  }
+
+  async sendAppUsersNotification(data: GeneralNotificationFormat) {
+    try {
+      this.logger.log(`Sending notification to user ${data.recipients[0].user_id} for event ${data.data.event}`);
+      
+      // Publish the notification task to the queue
+      const published = await this.rabbitMQService.publishTask(
+        this.queueName,
+        {
+          ...data,
+          timestamp: new Date().toISOString(),
+        }
+      );
+      
+      if (!published) {
+        throw new Error("Failed to publish notification task to queue");
+      }
+      
+      this.logger.log(`Notification task published to queue ${this.queueName} for user ${data.recipients[0].user_id}`);
+      return { success: true, message: "Notification task published to queue" };
+    } catch (error) {
+      this.logger.error(`ERROR from sendNotification: ${error.message}`);
+      throw new InternalServerErrorException(error.message);
     }
   }
 }

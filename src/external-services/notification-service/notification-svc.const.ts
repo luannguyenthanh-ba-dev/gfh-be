@@ -11,3 +11,14 @@ export enum APP_USERS_NOTIFICATION_SETTINGS_EVENTS {
 registerEnumType(APP_USERS_NOTIFICATION_SETTINGS_EVENTS, {
   name: "AppUsersNotificationSettingsEvents", // Name to be used in GraphQL Schema
 });
+
+export enum NOTIFICATION_TYPES {
+  USER_NOTIFICATION = "user_notification",
+  SYSTEM_NOTIFICATION = "system_notification",
+  ADMIN_NOTIFICATION = "admin_notification",
+  MARKETING_NOTIFICATION = "marketing_notification",
+  PROMOTIONAL_NOTIFICATION = "promotional_notification",
+  SECURITY_NOTIFICATION = "security_notification",
+  TRANSACTIONAL_NOTIFICATION = "transactional_notification",
+  VENDOR_NOTIFICATION = "vendor_notification",
+}
