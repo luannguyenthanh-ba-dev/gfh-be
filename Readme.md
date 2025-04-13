@@ -77,6 +77,10 @@ Similarly, you can create `production.env` and `uat.env` in the environments dir
 - `AUTH0_AUDIENCE`: API audience defined in Auth0
 - `AUTH0_DEFAULT_CONNECTION`: Auth0 database connection name
 
+#### Queue Configuration
+- `RABBITMQ_URL`: RabbitMQ connection URL (format: amqp://username:password@host:port)
+- `NOTIFICATION_QUEUE_NAME`: Name of the queue for notification processing
+
 ### Setup Instructions
 1. Copy `.env.example` to `.env` and select your environment
 2. Copy `environments/development.env.example` to `environments/development.env`
