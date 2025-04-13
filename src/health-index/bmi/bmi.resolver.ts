@@ -16,12 +16,21 @@ import { BmiChartType } from "./bmi.const";
 import { BmiChartData } from "./models/bmi-chart.model";
 import * as momentTz from "moment-timezone";
 import { Logger } from "@nestjs/common";
+import { NotificationSvcService } from "src/external-services/notification-service/notification-svc.service";
+import {
+  APP_USERS_NOTIFICATION_SETTINGS_EVENTS,
+  NOTIFICATION_TYPES,
+} from "src/external-services/notification-service/notification-svc.const";
+import { BmiEntity } from "./entities/bmi.entity";
 
 @Resolver(() => Bmi)
 export class BmiResolver {
   private readonly logger = new Logger(BmiResolver.name);
 
-  constructor(private readonly bmiService: BmiService) {}
+  constructor(
+    private readonly bmiService: BmiService,
+    private readonly notificationSvcService: NotificationSvcService
+  ) {}
 
   @UseGuards(AuthGuard)
   @Mutation(() => Bmi)
@@ -44,23 +53,45 @@ export class BmiResolver {
       to_time: to_time,
     });
 
+    let bmiRecord: Partial<BmiEntity>;
     // If record exists, update it
     if (existingRecord) {
       this.logger.log(
         `Updating existing BMI record for user ${actionUser.email}`
       );
-      return this.bmiService.updateOne(existingRecord.id, {
+      bmiRecord = await this.bmiService.updateOne(existingRecord.id, {
         height: createBmiArgs.height,
         weight: createBmiArgs.weight,
       });
+    } else {
+      // If no record exists, create a new one
+      this.logger.log(`Creating new BMI record for user ${actionUser.email}`);
+      bmiRecord = await this.bmiService.create({
+        ...createBmiArgs,
+        owner_id: actionUser.id,
+      });
     }
 
-    // If no record exists, create a new one
-    this.logger.log(`Creating new BMI record for user ${actionUser.email}`);
-    return this.bmiService.create({
-      ...createBmiArgs,
-      owner_id: actionUser.id,
-    });
+    if (bmiRecord) {
+      this.notificationSvcService.sendAppUsersNotification({
+        recipients: [
+          {
+            user_id: bmiRecord.owner_id,
+          },
+        ],
+        type: NOTIFICATION_TYPES.USER_NOTIFICATION,
+        data: {
+          event: APP_USERS_NOTIFICATION_SETTINGS_EVENTS.BMI_NOTIFICATION,
+          bmi_value: bmiRecord.bmi_value,
+          bmi_category: bmiRecord.bmi_category,
+          height: bmiRecord.height,
+          weight: bmiRecord.weight,
+          created_at: bmiRecord.created_at,
+        },
+      });
+    }
+
+    return bmiRecord;
   }
 
   @UseGuards(AuthGuard)
