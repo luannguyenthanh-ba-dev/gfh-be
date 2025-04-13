@@ -232,7 +232,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       // Convert task to buffer
       const taskBuffer = Buffer.from(JSON.stringify(task));
 
-      // Publish the task to the queue
+      // Publish the task to the queue (synchronous operation that returns immediately)
       const published = this.channel.sendToQueue(queue, taskBuffer, {
         persistent: true,
         ...options,
