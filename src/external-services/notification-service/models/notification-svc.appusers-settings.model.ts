@@ -45,6 +45,12 @@ export class NotificationAppUsersSettings {
   })
   telegram_notification: boolean;
 
+  @Field((type) => String, {
+    nullable: true,
+    description: "Timezone",
+  })
+  timezone: string;
+
   @Field((type) => Number, {
     nullable: false,
     description: "Created At - Unix Timestamp",

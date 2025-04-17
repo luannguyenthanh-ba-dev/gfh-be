@@ -77,6 +77,7 @@ export class BmiResolver {
         recipients: [
           {
             user_id: bmiRecord.owner_id,
+            user_name: actionUser.first_name + " " + actionUser.last_name,
           },
         ],
         type: NOTIFICATION_TYPES.USER_NOTIFICATION,

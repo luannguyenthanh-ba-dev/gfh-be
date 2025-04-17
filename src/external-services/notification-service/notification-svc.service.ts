@@ -26,6 +26,7 @@ export class NotificationSvcService {
     in_app_notification: boolean;
     email_notification: boolean;
     telegram_notification: boolean;
+    timezone?: string;
   }) {
     try {
       this.logger.log(`Creating appusers settings for user ${data.user_id}`);
@@ -80,6 +81,7 @@ export class NotificationSvcService {
     in_app_notification?: boolean;
     email_notification?: boolean;
     telegram_notification?: boolean;
+    timezone?: string;
   }) {
     try {
       this.logger.log(`Updating appusers settings for user ${data.user_id}`);

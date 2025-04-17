@@ -23,8 +23,7 @@ export class NotificationSvcAppUsersSettingsResolver {
     const response = await this.notificationSvcService.getAppUsersSettings(
       actionUser.id
     );
-    console.log(typeof response.created_at);
-    return JSON.parse(JSON.stringify(response));
+    return response;
   }
 
   @Mutation(() => NotificationAppUsersSettings, {
