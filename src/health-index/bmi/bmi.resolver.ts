@@ -22,6 +22,8 @@ import {
   NOTIFICATION_TYPES,
 } from "src/external-services/notification-service/notification-svc.const";
 import { BmiEntity } from "./entities/bmi.entity";
+import { BMI_CATEGORY } from "./bmi.const";
+import { RecommendationsService } from "src/recommendations/recommendations.service";
 
 @Resolver(() => Bmi)
 export class BmiResolver {
@@ -29,7 +31,8 @@ export class BmiResolver {
 
   constructor(
     private readonly bmiService: BmiService,
-    private readonly notificationSvcService: NotificationSvcService
+    private readonly notificationSvcService: NotificationSvcService,
+    private readonly recommendationsService: RecommendationsService
   ) {}
 
   @UseGuards(AuthGuard)
@@ -73,23 +76,34 @@ export class BmiResolver {
     }
 
     if (bmiRecord) {
-      this.notificationSvcService.sendAppUsersNotification({
-        recipients: [
-          {
-            user_id: bmiRecord.owner_id,
-            user_name: actionUser.first_name + " " + actionUser.last_name,
+      // Only send notification if BMI is not in the normal range
+      if (bmiRecord.bmi_category !== BMI_CATEGORY.NORMAL) {
+        const recommendation =
+          await this.recommendationsService.bmiRecommendations(
+            bmiRecord.height,
+            bmiRecord.weight,
+            bmiRecord.bmi_value,
+            bmiRecord.bmi_category
+          );
+        this.notificationSvcService.sendAppUsersNotification({
+          recipients: [
+            {
+              user_id: bmiRecord.owner_id,
+              user_name: actionUser.first_name + " " + actionUser.last_name,
+            },
+          ],
+          type: NOTIFICATION_TYPES.USER_NOTIFICATION,
+          data: {
+            event: APP_USERS_NOTIFICATION_SETTINGS_EVENTS.BMI_NOTIFICATION,
+            bmi_value: bmiRecord.bmi_value,
+            bmi_category: bmiRecord.bmi_category,
+            height: bmiRecord.height,
+            weight: bmiRecord.weight,
+            created_at: bmiRecord.created_at,
+            recommendation,
           },
-        ],
-        type: NOTIFICATION_TYPES.USER_NOTIFICATION,
-        data: {
-          event: APP_USERS_NOTIFICATION_SETTINGS_EVENTS.BMI_NOTIFICATION,
-          bmi_value: bmiRecord.bmi_value,
-          bmi_category: bmiRecord.bmi_category,
-          height: bmiRecord.height,
-          weight: bmiRecord.weight,
-          created_at: bmiRecord.created_at,
-        },
-      });
+        });
+      }
     }
 
     return bmiRecord;
