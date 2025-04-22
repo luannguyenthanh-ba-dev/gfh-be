@@ -4,7 +4,10 @@ import {
   Logger,
 } from "@nestjs/common";
 import axios from "axios";
-import { APP_USERS_NOTIFICATION_SETTINGS_EVENTS } from "./notification-svc.const";
+import {
+  APP_USERS_NOTIFICATION_SETTINGS_EVENTS,
+  NOTIFICATION_TYPES,
+} from "./notification-svc.const";
 import { RabbitMQService } from "../../queue/rabbit-mq.service";
 import { GeneralNotificationFormat } from "./notification-svc.interface";
 
@@ -12,9 +15,10 @@ import { GeneralNotificationFormat } from "./notification-svc.interface";
 export class NotificationSvcService {
   private readonly logger = new Logger(NotificationSvcService.name);
   private readonly notificationSvcUrl = process.env.NOTIFICATION_SERVICE_URL;
-  private readonly notificationSvcApiKey = process.env.NOTIFICATION_SERVICE_API_KEY;
+  private readonly notificationSvcApiKey =
+    process.env.NOTIFICATION_SERVICE_API_KEY;
   private readonly queueName = process.env.NOTIFICATION_QUEUE_NAME;
-  
+
   constructor(private readonly rabbitMQService: RabbitMQService) {}
 
   async createAppUsersSettings(data: {
@@ -108,25 +112,59 @@ export class NotificationSvcService {
 
   async sendAppUsersNotification(data: GeneralNotificationFormat) {
     try {
-      this.logger.log(`Sending notification to user ${data.recipients[0].user_id} for event ${data.data.event}`);
-      
-      // Publish the notification task to the queue
-      const published = await this.rabbitMQService.publishTask(
-        this.queueName,
-        {
-          ...data,
-          timestamp: new Date().toISOString(),
-        }
+      this.logger.log(
+        `Sending notification to user ${data.recipients[0].user_id} for event ${data.data.event}`
       );
-      
+
+      // Publish the notification task to the queue
+      const published = await this.rabbitMQService.publishTask(this.queueName, {
+        ...data,
+        timestamp: new Date().toISOString(),
+      });
+
       if (!published) {
         throw new Error("Failed to publish notification task to queue");
       }
-      
-      this.logger.log(`Notification task published to queue ${this.queueName} for user ${data.recipients[0].user_id}`);
+
+      this.logger.log(
+        `Notification task published to queue ${this.queueName} for user ${data.recipients[0].user_id}`
+      );
       return { success: true, message: "Notification task published to queue" };
     } catch (error) {
       this.logger.error(`ERROR from sendNotification: ${error.message}`);
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  async getUserInAppNotifications(
+    user_id: string,
+    filters: {
+      is_read?: boolean;
+      type?: NOTIFICATION_TYPES;
+      limit?: number;
+      page?: number;
+      sort_by?: string;
+      sort_order?: number;
+    }
+  ) {
+    try {
+      console.log(`${this.notificationSvcUrl}/in-app-notifications/${user_id}`);
+      this.logger.log(`Getting in-app notifications for user ${user_id}`);
+      const response = await axios.get(
+        `${this.notificationSvcUrl}/in-app-notifications/users/${user_id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "api-key": this.notificationSvcApiKey,
+          },
+          params: filters,
+        }
+      );
+      return response.data;
+    } catch (error) {
+      this.logger.error(
+        `ERROR from getUserInAppNotifications: ${error.message}`
+      );
       throw new InternalServerErrorException(error.message);
     }
   }

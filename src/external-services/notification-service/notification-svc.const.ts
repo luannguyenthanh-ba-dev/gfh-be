@@ -22,3 +22,8 @@ export enum NOTIFICATION_TYPES {
   TRANSACTIONAL_NOTIFICATION = "transactional_notification",
   VENDOR_NOTIFICATION = "vendor_notification",
 }
+
+// ✅ Register the enum with GraphQL
+registerEnumType(NOTIFICATION_TYPES, {
+  name: "NotificationTypes", // Name to be used in GraphQL Schema
+});

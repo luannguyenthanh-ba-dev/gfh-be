@@ -142,6 +142,73 @@ enum AppUsersNotificationSettingsEvents {
   TDEE_NOTIFICATION
 }
 
+"""in-app-notifications"""
+type NotificationSvcInAppNotification {
+  """In App Notification ID"""
+  _id: ID!
+
+  """User ID"""
+  user_id: String!
+
+  """User Name"""
+  user_name: String!
+
+  """Notification Type"""
+  type: NotificationTypes!
+
+  """Event"""
+  event: String!
+
+  """Data"""
+  data: JSON!
+
+  """Is Read"""
+  is_read: Boolean!
+
+  """Is Deleted"""
+  is_deleted: Boolean!
+
+  """Read At"""
+  read_at: Date
+
+  """Created At"""
+  created_at: Float!
+
+  """Updated At"""
+  updated_at: Float!
+}
+
+enum NotificationTypes {
+  USER_NOTIFICATION
+  SYSTEM_NOTIFICATION
+  ADMIN_NOTIFICATION
+  MARKETING_NOTIFICATION
+  PROMOTIONAL_NOTIFICATION
+  SECURITY_NOTIFICATION
+  TRANSACTIONAL_NOTIFICATION
+  VENDOR_NOTIFICATION
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
+"""paginated-in-app-notifications"""
+type PaginatedNotificationSvcInAppNotification {
+  """Notifications"""
+  data: [NotificationSvcInAppNotification]!
+
+  """Total"""
+  total: Float!
+
+  """Page"""
+  page: Float!
+
+  """Limit"""
+  limit: Float!
+}
+
 type Bmi {
   """BMI ID"""
   id: ID!
@@ -190,6 +257,25 @@ type Query {
   getUserById(id: ID!): Users!
   paginateUsers(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, name: String, email: String, phone: String, role: USER_ROLES, auth0_user_id: String): PaginatedUsers!
   getNotificationAppUsersSettings: NotificationAppUsersSettings!
+  getUserInAppNotifications(
+    """Read status"""
+    is_read: Boolean
+
+    """Notification type"""
+    type: NotificationTypes
+
+    """Limit the number of returned records"""
+    limit: Float
+
+    """Page number"""
+    page: Float
+
+    """Sort by field"""
+    sort_by: String = "created_at"
+
+    """Sort order"""
+    sort_order: Float = -1
+  ): PaginatedNotificationSvcInAppNotification!
   getBmiById(id: ID!): Bmi!
   getMyBmiRecords(id: String, page: Int = 1, limit: Int = 10, order_by: String = "created_at", order: Oder = DESC, from_height: Float, to_height: Float, from_weight: Float, to_weight: Float, from_bmi_value: Float, to_bmi_value: Float, bmi_category: BMI_CATEGORY, from_time: Date, to_time: Date): PaginatedBmi!
   getMyBmiChart(
